@@ -1,70 +1,111 @@
-# Getting Started with Create React App
+# TipTap POC
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+TipTap is designed for intricate rich text editing based on ProseMirror's architecture.
 
-## Available Scripts
+## Concepts
+### Structure
+Schema defines the structure of a document. A document is a tree of headings, paragraphs and other elements which are called nodes and it works in combination of marks (bold, emphais etc).
 
-In the project directory, you can run:
+### Content
+The document is stored as a state. All changes are applied as transactions to the state. The state has details about the:
+- Current content
+- Cursor position
+- Selection
 
-### `npm start`
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Extensions
+Extensions adds:
+- Nodes (e.g `Heading`, `Table`, `CodeBlock` etc)
+- Marks (e.g `Bold`, `Strike`, `Italic` etc)
+- Functionalities (e.g `FileHandler`, `FloatingMenu`, `TextAlign`)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+<hr style="height: 3px; background: linear-gradient(to right, #595A88, #66C7F4); margin: 20px 0;"/>
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Usage
+There are 3 main elements while configuring a TipTap component:
+- Editor
+- Content 
+- Extensions
 
-### `npm run build`
+### Editor
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Ways of configuring the editor
+The editor can be created in multiple ways
+- Using EditorProvider context
+    ```jsx
+        import { EditorProvider, FloatingMenu, BubbleMenu } from '@tiptap/react'
+        import StarterKit from '@tiptap/starter-kit'
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+        // define your extension array
+        const extensions = [StarterKit]
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+        const content = '<p>Hello World!</p>'
 
-### `npm run eject`
+        const Tiptap = () => {
+        return (
+            <EditorProvider extensions={extensions} content={content}>
+            <FloatingMenu editor={null}>This is the floating menu</FloatingMenu>
+            <BubbleMenu editor={null}>This is the bubble menu</BubbleMenu>
+            </EditorProvider>
+        )
+        }
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+        export default Tiptap
+    ```
+- `useEditor` hook (Avoid)
+    ```jsx
+        import { useEditor, EditorContent, FloatingMenu, BubbleMenu } from '@tiptap/react'
+        import StarterKit from '@tiptap/starter-kit'
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+        // define your extension array
+        const extensions = [StarterKit]
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+        const content = '<p>Hello World!</p>'
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+        const Tiptap = () => {
+        const editor = useEditor({
+            extensions,
+            content,
+        })
 
-## Learn More
+        return (
+            <>
+                <EditorContent editor={editor} />
+                <FloatingMenu editor={editor}>This is the floating menu</FloatingMenu>
+                <BubbleMenu editor={editor}>This is the bubble menu</BubbleMenu>
+            </>
+        )
+        }
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+        export default Tiptap
+        
+    ```
+ > Note : Preferrably use EditorProvider to access it in other components using the useCurrentEditor hook.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+#### Consuming editor in other components
 
-### Code Splitting
+The editor if implemented using the EditorProvider context can be access using useCurrentEditor hook in the child components.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```jsx
+import { useCurrentEditor } from '@tiptap/react'
 
-### Analyzing the Bundle Size
+const EditorJSONPreview = () => {
+  const { editor } = useCurrentEditor()
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+  return <pre>{JSON.stringify(editor.getJSON(), null, 2)}</pre>
+}
+```
 
-### Making a Progressive Web App
+#### Before and after slots
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Define the before and after components in respect to the content. 
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```jsx
+<EditorProvider
+  extensions={extensions}
+  content={content}
+  slotBefore={<MyEditorToolbar />}
+  slotAfter={<MyEditorFooter />}
+/>
+```
