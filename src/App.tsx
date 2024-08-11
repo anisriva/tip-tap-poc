@@ -1,4 +1,5 @@
 import Tiptap from "./TipTap";
+import DefaultEditor from "./DefaultEditor";
 function App() {
   return (
     <div>
@@ -8,6 +9,7 @@ function App() {
       <main>
         <div className="card">
           <Tiptap />
+          <DefaultEditor />
         </div>
       </main>
     </div>
